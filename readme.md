@@ -5,7 +5,7 @@
 
 - Just like VPC, you will have a dedicated isolated project to create your workloads/resources where we can create our workloads or resources.
 
-Example:
+**Example:**
 ```
 apiVersion: v1
 kind: Namespace
@@ -36,4 +36,31 @@ kubectl delete -f 01.namespace.yml
 **2. Pod**
 
 - Pod is the smallest deployable unit in kubernetes. It can contain one or many containers
+
+**Example:**
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+```
+
+To get Pods:
+```
+kubectl get pods
+```
+To get inside the pod: (How can you login to the runnning pod)
+```
+kubectl exec -it nginx -- bash
+```
+To check nginx working or not:
+```
+curl localhost
+```
+
+
 
