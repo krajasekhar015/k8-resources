@@ -110,6 +110,350 @@ Here, nginx can access almalinux using localhost. Because, both the containers i
 - So, in this case we use almalinux to store nginx logs in elastic search. This is called as sidecar 
 - So, multi-container resource is used in sidecar and proxy-patterns.
 
+**4. Labels**
+
+- In Kubernetes, label resources are key-value pairs that are attached to objects such as pods, services, and nodes. Labels are used to organize and select subsets of objects.
+
+- Labels add metadata to pod and it is used as selectors
+
+Example:
+```
+kind: Pod
+apiVersion: v1
+metadata:
+  name: labels
+  labels:
+    project: expense
+    module: backend
+    environment: dev
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+```
+
+To get full details about pod:
+```
+kubectl describe pod podname
+```
+
+**5. Annotations**
+
+- In Kubernetes, annotations are similar to labels but serve a different purpose. Annotations are key-value pairs that can be attached to Kubernetes objects, and they are primarily used to store metadata that is not intended for identification or selection purposes.
+- Labels are used for kubernets internal resource selectors and Annotations are used for kubernetes external resource selectors
+
+Example:
+```
+kind: Pod
+apiVersion: v1
+metadata:
+  name: annotations
+  annotations:
+    imageregistry: "https://hub.docker.com/"
+    buildURL: "https://jenkins.joindevops.com/expense/backend/build/67"
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+```
+
+**6. Env**
+
+- In Kubernetes, "env" resources typically refer to environment variables that can be defined for containers within a pod
+
+Example:
+```
+kind: Pod
+apiVersion: v1
+metadata:
+  name: environment
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    env:
+      - name: course
+        value: devops
+      - name: trainer
+        value: "sivakumar reddy"
+      - name: duration
+        value: "120hr"
+```
+
+**ENV in image definition vs ENV in manifest:**
+- env in Dockerfile should rebuild, if you change anything 
+- env in manifest no need to rebuild, just restart is enough 
+- One of the advantage to keep the env in manifest is to restart whenever it changes 
+- env in kubernetes is a list of key-value pairs
+
+To access the environment variables inside the code, login to pod
+```
+kubectl exec -it environment -- bash
+```
+```
+env
+```
+
+**7. Resource Limit**
+
+- In Kubernetes, resource limits are settings that define the maximum amount of CPU and memory that a container can use.
+
+Resource utilization :
+- **Docker advantage in resource utilization:** It will consume the resource dynamically and it will not block the resource
+-> In virtualization, underline host will block the resources 
+
+Disadvantage:
+- If something goes wrong in loop, it will occupy entire host resources 
+- we need to allocate the resources to the container 
+
+Requests and limits:
+- If the node where a pod is running has enough of a resource available, it's possible(and allowed) for a container to use more resource than its request for that resource specifies. However, a container is not allowed to use more than its resource limit
+- Here, requests is softlimit and limits is hardlimit
+
+Example:
+```
+kind: Pod
+apiVersion: v1
+metadata:
+  name: limits
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    resources:
+      requests:
+        cpu: 100m
+        memory: 68Mi
+      limits:
+        cpu: 120m
+        memory: 100Mi
+```
+
+- This can be useful in monitoring as well
+
+**8. Config Map**
+
+- In Kubernetes, a ConfigMap is a resource that allows you to store configuration data as key-value pairs
+- It will supply the configuration values for our applications
+
+Example:
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  course: devops
+  duration: "120hrs"
+```
+
+List of commands we apply here:
+```
+kubectl apply -f 08-config-map.yaml 
+```
+```
+kubectl get configmaps
+```
+```
+kubectl describe configmap nginx-config 
+```
+
+- We will refere this config-map files as show below
+
+**9. Pod Config**
+
+Example:
+```
+kind: Pod 
+apiVersion: v1 
+metadata:
+	name: pod-config
+spec:
+	containers:
+	- name: nginx 
+	  image: nginx
+	  env:
+	    - name: course 
+		  valueFrom: 
+			configMapKeyRef: 
+			  name: nginx-config # name of the config map you are referring to 
+			  key: course   # env.name and config map key name can be different or same there is no difference
+		- name: duration
+		  valueFrom:  
+			configMapKeyRef: 
+			  name: nginx-config
+			  key: duration
+```
+
+List of commands we use here:
+```
+kubectl apply -f 09-pod-config.yaml
+```
+``` 
+kubectl get pods 
+```
+```
+kubectl exec -it pod-config -- bash 
+```
+```
+kubectl get configmap
+```
+
+- Now, we can change values in configmap
+
+```
+kubectl edit configmap nginx-config
+```
+
+- After changing values, to get reflect in pod, we need to restart it. Here restart is nothing but we delete the pod and create it again
+
+```
+kubectl delete pod pod-config
+```
+kubectl apply -f 09-pod-config.yaml
+```
+```
+kubectl exec -it pod-config -- bash
+```
+```
+env
+```
+
+- It is difficult to manage the large file when env variables get increases
+- So, we will use entire configmap file reference here
+
+Example:
+```
+kind: Pod 
+apiVersion: v1 
+metadata:
+	name: pod-config
+spec:
+	containers:
+	- name: nginx 
+	  image: nginx
+	  envFrom:
+	  - configMapRef:
+		 name: nginx-config
+```
+
+- config-map files are non confidential information
+
+**10. Secretes**
+
+- In Kubernetes, a Secret is a resource designed to store sensitive information, such as passwords, OAuth tokens, SSH keys, or any other data that you want to keep confidential. Secrets are used to ensure that sensitive data is not hardcoded into application code or stored in plain text
+
+Example:
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pod-secret
+type: Opaque
+data:
+  username: c2l2YWt1bWFyCg==
+  password: YWRtaW4xMjMK
+```
+
+- Here, we have to encode the data and keep it in a file
+- Encoding:
+    - echo "rajasekhar" | base64 
+    - echo "admin123" | base64
+
+List of commands we use here:
+```
+kubectl apply -f 10-secret.yaml
+```
+```
+kubectl get secrets
+```
+```
+kubectl describe secret pod-secret
+```
+
+- We decode this information in pods as shown below
+
+**11. pod secrets**
+
+Example:
+```
+kind: Pod
+apiVersion: v1
+metadata:
+  name: pod-secret
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    envFrom:
+    - secretRef:
+        name: pod-secret
+```
+
+List of commands we use here:
+```
+kubectl apply -f 11-pod-secret.yaml		 
+```
+```
+kubectl get pods
+```
+```
+kubectl exec -it pod-secret -- bash 
+```
+
+- Decoding
+   - echo "uswduiaSCJKZJK" | base64 --decode
+
+- Encryption is different compared to encoding and decoding. We use secret manager or ssm parameters in AWS for encryption
+
+**12. Service**
+
+How can you access your pod in interent or outside? 
+A) By exposing to services 
+
+- Service is another type of resource
+
+- Now, we can access IP address of pod-secret in annotations. 
+```
+kubectl get pods
+```
+```
+kubectl describe pod pod-secret
+```
+- Copy the IP address from here
+- Login to annotations
+```
+kubectl exec -it annotations -- bash
+```
+```
+curl IPAddress
+```
+- So, we can access the IPaddress of pod-secrete in annotations
+- pod IP are ephemeral. It means any time it can change 
+- It is not good to access the pod to pod with Ip address
+- we can use `services` to communication between pods 
+
+**Kubernetes services**
+
+- A service is a method for exposing a network application that is running as one or more Pods in your cluster
+- Pod to Pod commuincation can be achieved in kubernetes through services
+- We have three services
+    - Cluster IP:
+        - It is default. only for internal pod to pod communication but cannot access in internet
+    - Node Port:
+        - Node port means open a port on node/underlying host
+        - You can expose the port to the external world like internet
+        - when you create a nodeport service a port is opened on each workernode and it will be forwarded to the Pod
+    - Load Balancer
+
+- services select pods using labels through selectors
+- If service wants to attach to pod, it uses labels
+- It is recommended to give as many as labels possible that creates the uniqueness
+
+- Service can act as DNS to pod and load-balancer as well
+  
+
+
 
 
 
