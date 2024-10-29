@@ -200,7 +200,7 @@ env
 
 Resource utilization :
 - **Docker advantage in resource utilization:** It will consume the resource dynamically and it will not block the resource
--> In virtualization, underline host will block the resources 
+- In virtualization, underline host will block the resources 
 
 Disadvantage:
 - If something goes wrong in loop, it will occupy entire host resources 
