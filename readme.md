@@ -310,6 +310,7 @@ kubectl edit configmap nginx-config
 ```
 kubectl delete pod pod-config
 ```
+```
 kubectl apply -f 09-pod-config.yaml
 ```
 ```
