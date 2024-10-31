@@ -24,7 +24,7 @@ To get namespaces:
 ```
 kubectl get namespaces
 ```
-![alt text](images/image.png)
+![alt text](images/namespaces.png)
 
 - Here, there will be one default namespace which is already created internally and there will be another three namespaces which are used for kubernetes internal purpose and another namespace `expense` which is created by us.
 
@@ -439,13 +439,98 @@ curl IPAddress
 - A service is a method for exposing a network application that is running as one or more Pods in your cluster
 - Pod to Pod commuincation can be achieved in kubernetes through services
 - We have three services
-    - Cluster IP:
-        - It is default. only for internal pod to pod communication but cannot access in internet
-    - Node Port:
+    - **Cluster IP:**
+        - It is default. Cluster IP only for internal pod to pod communication but cannot access in internet
+      
+      ![alt text](images/k8-service.drawio.svg)
+
+        - Here, annotations pod wants to connect to labels pod through service. It hit request to kubernetes service and service hit request to lables pod.
+        - Here, Service can act as DNS to pod and Load-balancer as well
+
+        Example:
+        ```
+        kind: Service
+        apiVersion: v1
+        metadata:
+          name: nginx
+        spec:
+          selector:
+            project: expense
+            module: backend
+            environment: dev
+          ports:
+          - name: nginx-svc-port
+            protocol: TCP
+            port: 80        #service port
+            targetPort: 80  #container port
+        ```
+
+        - List of commands we apply here:
+        ```
+        kubectl apply -f 12-service.yaml
+        ```
+        ```
+        kubectl get services 
+        ```
+        - Now, get login to any ogf the pod and curl nginx, we will get the response
+        ```
+        kubectl exec -it annotations -- bash
+        ```
+        ```
+        curl nginx
+        ```
+        - Now, we can restart pod n-number of times orelse delete and recreate it but we can access it through service
+        - If we see the full details of nginx service, we we will get the Endpoint that is pod Ip address
+        - Everytime when we create a service, it will get attched to the pod
+        ```
+        kubectl describe service nginx
+        ```
+
+    - **Node Port:**
         - Node port means open a port on node/underlying host
         - You can expose the port to the external world like internet
-        - when you create a nodeport service a port is opened on each workernode and it will be forwarded to the Pod
-    - Load Balancer
+        - when you create a nodeport service, a port is opened on each workernode and it will be forwarded to the Pod
+
+      Example:
+      ```
+      kind: Service
+      apiVersion: v1
+      metadata:
+        name: nginx-np
+      spec:
+        type: NodePort
+        selector:
+          project: expense
+          module: backend
+          environment: dev
+        ports:
+        - name: nginx-svc-port
+          protocol: TCP
+          port: 80 # service port
+          targetPort: 80 # container port
+      ```
+
+      - Here, one port number is open for workernode i.e 32274
+      - Any user can access this host ip:port number and it takes that port number to Pod
+
+      List of commands we use here:
+      ```
+      kubectl apply -f 13-node-port.yaml
+      ```
+      ```
+      kubectl get services 
+      ```
+      ```
+      kubectl get pods -o wide 
+      ```
+      - check for the labels IP address and compare with the instance and give the security group and Allow all traffic and all Ip 0.0.0.0/0
+      - access with that IP address in chrome --> Ipaddress:32274
+      - And also try with the other instances IP addresses 
+      - So, we don't need in which node the pod is present
+      - ClusterIP is the subset of NodeIP
+
+
+    - **Load Balancer**
 
 - services select pods using labels through selectors
 - If service wants to attach to pod, it uses labels
