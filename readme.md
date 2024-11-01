@@ -551,13 +551,13 @@ curl IPAddress
     - Here, loadbalancer will open nodeport portno.31857 and it also creates actual loadbalancer in the cloud
     - Nodeport is subset of Loadbalancer
 
+    ![alt text](images/k8-services-LoadBalancer.drawio.svg)
 
     - Here, user will hit loadbalancer and the request from loadbalancer goes to one workernode randomly which is healthy on nodeport portno.31857. Ultimately the request reaches the pod through cluster IP
     - EKS Nodeport ranges from 30000-32767. It will select randomly from this range. We can also specify particular Node port.
 
+    ![alt text](images/k8-services-Services.drawio.svg)
 
-
-- Service can act as DNS to pod and load-balancer as well
   
 
 
