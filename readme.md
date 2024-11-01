@@ -536,9 +536,7 @@ curl IPAddress
       - access with that IP address in chrome --> Ipaddress:32274
       - And also try with the other instances IP addresses 
       - So, we don't need in which node the pod is present
-      - ClusterIP is the subset of NodeIP
-
-
+      
     - **Load Balancer**
 
     - List of commands we use:
@@ -549,7 +547,6 @@ curl IPAddress
     kubectl get services
     ```
     - Here, loadbalancer will open nodeport portno.31857 and it also creates actual loadbalancer in the cloud
-    - Nodeport is subset of Loadbalancer
 
     ![alt text](images/k8-services-LoadBalancer.drawio.svg)
 
@@ -558,6 +555,8 @@ curl IPAddress
 
     ![alt text](images/k8-services-Services.drawio.svg)
 
+    - ClusterIP is the subset of NodeIP
+    - Nodeport is subset of Loadbalancer
   
 
 
