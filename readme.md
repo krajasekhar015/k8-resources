@@ -102,7 +102,7 @@ curl localhost
 ```
 Here, nginx can access almalinux using localhost. Because, both the containers in a pod are sharing same network identity.
 
-![alt text](images/k8-multi-container.drawio.svg)
+![alt text](images/k8-multi-container.svg)
 
 - Basically, nginx logs are saved in `/var/log/nginx`. We know that containers are temporary. If we delete container, then logs also will get deleted.
 - We need logs for troubleshooting. So, we will save the logs in `elasticsearch`
