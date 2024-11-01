@@ -358,7 +358,7 @@ data:
   password: YWRtaW4xMjMK
 ```
 
-- Here, we have to encode the data and keep it in a file
+- Here, we have to encode the data using base64 and keep it in a file
 - Encoding:
     - echo "rajasekhar" | base64 
     - echo "admin123" | base64
@@ -411,7 +411,7 @@ kubectl exec -it pod-secret -- bash
 
 **12. Service**
 
-How can you access your pod in interent or outside? 
+How can you access your pod in interent or outside?  <br>
 A) By exposing to services 
 
 - Service is another type of resource
@@ -443,10 +443,15 @@ curl IPAddress
 - We have three services
     - **Cluster IP:**
         - It is default. Cluster IP only for internal pod to pod communication but cannot access in internet
+        - Here, services defines that which pod should select using labels
+        - If service wants to attach to pod, it uses labels
+        - It is recommended to give as many as labels possible that creates the uniqueness
+        - When service is getting created, it will search all the available pods and the service get attached to the pod where defined lables are mentioned/matched
       
       ![alt text](images/k8-service.drawio.svg)
 
         - Here, annotations pod wants to connect to labels pod through service. It hit request to kubernetes service and service hit request to lables pod.
+        
         - Here, Service can act as DNS to pod and Load-balancer as well
 
         Example:
@@ -474,7 +479,7 @@ curl IPAddress
         ```
         kubectl get services 
         ```
-        - Now, get login to any ogf the pod and curl nginx, we will get the response
+        - Now, get login to any of the pod and `curl nginx`, we will get the response
         ```
         kubectl exec -it annotations -- bash
         ```
@@ -534,9 +539,7 @@ curl IPAddress
 
     - **Load Balancer**
 
-- services select pods using labels through selectors
-- If service wants to attach to pod, it uses labels
-- It is recommended to give as many as labels possible that creates the uniqueness
+
 
 - Service can act as DNS to pod and load-balancer as well
   
