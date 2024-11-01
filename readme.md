@@ -209,6 +209,7 @@ Disadvantage:
 Requests and limits:
 - If the node where a pod is running has enough of a resource available, it's possible(and allowed) for a container to use more resource than its request for that resource specifies. However, a container is not allowed to use more than its resource limit
 - Here, requests is softlimit and limits is hardlimit
+- When the container get starts, it will have softlimt. But it can go upto hardlimit if there are too many responses comming.
 
 Example:
 ```
@@ -274,15 +275,15 @@ spec:
 	  image: nginx
 	  env:
 	    - name: course 
-		  valueFrom: 
-			configMapKeyRef: 
-			  name: nginx-config # name of the config map you are referring to 
-			  key: course   # env.name and config map key name can be different or same there is no difference
-		- name: duration
-		  valueFrom:  
-			configMapKeyRef: 
-			  name: nginx-config
-			  key: duration
+		    valueFrom: 
+			    configMapKeyRef: 
+            name: nginx-config # name of the config map you are referring to 
+            key: course   # env.name and config map key name can be different or same there is no difference
+      - name: duration
+        valueFrom:  
+          configMapKeyRef: 
+            name: nginx-config
+            key: duration
 ```
 
 List of commands we use here:
@@ -295,15 +296,16 @@ kubectl get pods
 ```
 kubectl exec -it pod-config -- bash 
 ```
+- To make changes without touching pod definition:
+
 ```
 kubectl get configmap
 ```
 
-- Now, we can change values in configmap
-
 ```
 kubectl edit configmap nginx-config
 ```
+- It will open VIM editor. We can changes values here and save it.
 
 - After changing values, to get reflect in pod, we need to restart it. Here restart is nothing but we delete the pod and create it again
 
