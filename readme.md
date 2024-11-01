@@ -516,7 +516,7 @@ curl IPAddress
           port: 80 # service port
           targetPort: 80 # container port
       ```
-      
+
       ![alt text](images/k8-service-NodePort.drawio.svg)
 
       - Here, one port number is open for workernode i.e 32274
@@ -540,6 +540,20 @@ curl IPAddress
 
 
     - **Load Balancer**
+
+    - List of commands we use:
+    ```
+    kubectl apply -f 14-load-balancer.yml
+    ```
+    ```
+    kubectl get services
+    ```
+    - Here, loadbalancer will open nodeport portno.31857 and it also creates actual loadbalancer in the cloud
+    - Nodeport is subset of Loadbalancer
+
+
+    - Here, user will hit loadbalancer and the request from loadbalancer goes to one workernode randomly which is healthy on nodeport portno.31857. Ultimately the request reaches the pod through cluster IP
+    - EKS Nodeport ranges from 30000-32767. It will select randomly from this range. We can also specify particular Node port.
 
 
 
