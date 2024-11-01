@@ -516,6 +516,8 @@ curl IPAddress
           port: 80 # service port
           targetPort: 80 # container port
       ```
+      
+      ![alt text](images/k8-service-NodePort.drawio.svg)
 
       - Here, one port number is open for workernode i.e 32274
       - Any user can access this host ip:port number and it takes that port number to Pod
