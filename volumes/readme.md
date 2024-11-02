@@ -77,6 +77,39 @@ spec:
 - Here, capacity should be equivalent to the capacity created for volume. 
 - Volume ID should be specified which we have created earlier
 
+```
+kubectl apply -f 01-ebs-static.yml
+```
+```
+kubectl get pv
+```
+
+**RECLAIM POLICY**
+**1. Retain:** When node is deleted, and we may not loose data
+    - When PersistantVolumeClaim is deleted, the PersistantVolume still exists and the volume is considered "released"
+**2. Delete:** Whenever we delete the PersistantVolume, the disk gets deleted 
+**3. Recycle:** Disk will not delete but the data cleans up
+
+- Till now we have created actual storage and created equivalent object PV in cluster. Now, we have storage in our cluster and pod should ask for storage its nothing but claiming. Pod should request kubernetes cluster for storage. It is called PVC (Persistant Volume Claim)
+
+```
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ebs-static
+spec:
+  storageClassName: "" # Empty string must be explicitly set otherwise default StorageClass will be set
+  volumeName: ebs-static
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+```
+- Here, storageClassName should be kept empty for static provisioning
+- volumeName should be matched.
+- Storage should be less or equivalent to the volume we have created
+
 
 
 
