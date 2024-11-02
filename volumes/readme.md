@@ -110,6 +110,49 @@ spec:
 - volumeName should be matched.
 - Storage should be less or equivalent to the volume we have created
 
+```
+kubectl apply -f 01-ebs-static.yml
+```
+```
+kubectl get pvc
+```
+- Here, we can see the status as `bound` which means PVC has attached to PV
+```
+kubectl describe pvc ebs-static
+```
+```
+kubectl describe pv ebs-static
+```
+- Create pod and attach volume through PVC
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ebs-static
+  labels:
+    purpose: ebs-static
+spec:
+  nodeSelector:
+    topology.kubernetes.io/zone: us-east-1d
+  containers:
+  - name: nginx
+    image: nginx
+    volumeMounts: # docker run -v hostpath:contaierpath
+    - name: ebs-static
+      mountPath: /usr/share/nginx/html
+  volumes:
+  - name: ebs-static
+    persistentVolumeClaim:
+      claimName: ebs-static
+```
+
+
+
+
+- PV is the physical representation of the storage. It is the wrapper object which represents the external storage
+- PVC is the claim requesting for storage. PVC contains PV information
+- POD gets the storage through PVC
+
 
 
 
