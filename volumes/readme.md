@@ -12,6 +12,8 @@
     - Static Provisioning
     - Dynamic Provisioning
 
+![alt text](../images/k8-volumes.drawio.svg)
+
 **Static Provisioning**
 - Here, static means everything we need to do.
     i. First, we need to create volumes
