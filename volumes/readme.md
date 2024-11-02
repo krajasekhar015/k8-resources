@@ -145,6 +145,20 @@ spec:
     persistentVolumeClaim:
       claimName: ebs-static
 ```
+```
+kubectl apply -f 01-ebs-static.yml
+```
+```
+kubectl get pods
+```
+```
+kubectl get pods -o wide
+```
+- Here, we need to specify nodeselector. We should say pod to go to that node.
+```
+kubectl get nodes --show-labels
+```
+
 
 
 
