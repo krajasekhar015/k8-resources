@@ -294,9 +294,10 @@ spec:
     targetPort: 80 # container port
     nodePort: 30007
 ```
-
-
-
+- Here, kubernetes will create a volume automatically
+```
+kubectl get pv
+```
 
 
 ## 2. EFS 
