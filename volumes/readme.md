@@ -160,6 +160,31 @@ kubectl get nodes --show-labels
 ```
 - Delete the pod and recreate it
 
+```
+kubectl describe pod ebs-static
+```
+- Here, we can see that `AttachVolume.Attach succeded for volume "ebs-static"`
+
+- Now, attach service to the pod and make sure allow security groups of particular nodeport
+
+```
+kind: Service
+apiVersion: v1
+metadata:
+  name: nginx
+spec:
+  type: LoadBalancer
+  selector:
+    purpose: ebs-static
+  ports:
+  - name: nginx-svc-port
+    protocol: TCP
+    port: 80 # service port
+    targetPort: 80 # container port
+    nodePort: 30007
+```
+
+
 
 
 
