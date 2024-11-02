@@ -158,7 +158,7 @@ kubectl get pods -o wide
 ```
 kubectl get nodes --show-labels
 ```
-
+- Delete the pod and recreate it
 
 
 
