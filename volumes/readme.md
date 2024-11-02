@@ -184,20 +184,118 @@ spec:
     nodePort: 30007
 ```
 
+```
+kubectl get pods
+```
+```
+kubectl exec -it ebs-static -- bash
+```
+```
+cd /usr/share/nginx/html/
+```
+```
+echo "<h1>This is EBS Storage</h1>" > index.html
+```
+- Now, if we copy the LB URL and browse it in internet, we will get this index.html page
+- If we delete pod and recreate it, the data will be there.
+- This is static provisioning
 
-
-
-
+**Key Points**
 - PV is the physical representation of the storage. It is the wrapper object which represents the external storage
 - PVC is the claim requesting for storage. PVC contains PV information
 - POD gets the storage through PVC
 
 
-
-
 **Dynamic Provisioning**
 - Here, dynamic means everything will be taken care by kubernetes
 - Volumes will be created by kubernetes
+
+To view all the resources in kubernetes cluster
+```
+kubectl api-resources
+```
+- When we create any resource, we have two types
+    - It will be namespace level
+    - It will be cluster level
+- Here, PV is the cluster level and admin has to create it
+
+**expense project devops engineer got a requirement to have a volume**
+1. You should send an email to storage team to create disk, then get the approval from manager and after getting approval they will create disk 
+2. You send an emain to K8 admin to create PV and provide them disk details
+
+Now it's your turn is to create pvc and claim in the pod 
+-> we have to ask for administartor for any changes in the permissions
+
+- Now, delete the ebs-static pod and also volume created in AWS
+
+- In dynamic provisioning, we no need to create volume and PV. 
+- Default storageClass reclaimpolicy is delete. We don't use defalut
+```
+kubectl get sc
+```
+- We will create our own storage class (This is admin activity)
+```
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: expense-ebs
+reclaimPolicy: Retain
+provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer 
+```
+- Here, storage will be created when pod is getting created
+- Now, we will create dynamically 
+
+```
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ebs-dynamic
+spec:
+  storageClassName: "expense-ebs"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ebs-dynamic
+  labels:
+    purpose: ebs-dynamic
+spec:
+  nodeSelector:
+    topology.kubernetes.io/zone: us-east-1d
+  containers:
+  - name: nginx
+    image: nginx
+    volumeMounts: # docker run -v hostpath:contaierpath
+    - name: ebs-dynamic
+      mountPath: /usr/share/nginx/html
+  volumes:
+  - name: ebs-dynamic
+    persistentVolumeClaim:
+      claimName: ebs-dynamic
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: nginx
+spec:
+  type: LoadBalancer
+  selector:
+    purpose: ebs-dynamic
+  ports:
+  - name: nginx-svc-port
+    protocol: TCP
+    port: 80 # service port
+    targetPort: 80 # container port
+    nodePort: 30007
+```
+
+
 
 
 
