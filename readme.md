@@ -557,6 +557,197 @@ curl IPAddress
 
     - ClusterIP is the subset of NodeIP
     - Nodeport is subset of Loadbalancer
+
+**13. Sets**
+
+- In kubernetes, there are four type of sets: They are
+    - Replica Set
+    - Deployment Set
+    - Daemon Set
+    - Statefulset
+  
+**Replica Set**
+- Replica Set make sure your desired number of pods running all the time
+    - Suppose, if we want three pods then replica set responsibility is at any point of time there should be three pods running
+- Replica set selects pods based on the labels
+
+```
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nginx
+  labels: # these are replicaset labels
+    app: nginx
+    tier: frontend
+spec:
+  # modify replicas according to your case
+  replicas: 3
+  selector:
+    # these are used to select the pod to create replicas
+    matchLabels:
+      tier: frontend
+      app: nginx
+  # this is pod definition
+  template:
+    metadata:
+      # these labels belongs to pod
+      labels:
+        tier: frontend
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:stable-perl
+```
+
+```
+kubectl apply -f 15-replicaset.yml
+```
+```
+kubectl get pods
+```
+```
+kubectl get replicasets
+```
+
+- We cannot select pod name in replica set. If we select any name, then kubernetes will create with that name along with some random number. Example: `nginx-5t9st`
+- If we delete any one of the pod, then it will create another pod automatically.
+
+```
+kubectl delete pod nginx-vpnm4
+```
+```
+kubectl get pods
+```
+
+- Attach any service to this replicaset using same labels that are mentioned in replicaset
+
+```
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nginx
+  labels: # these are replicaset labels
+    app: nginx
+    tier: frontend
+spec:
+  # modify replicas according to your case
+  replicas: 3
+  selector:
+    # these are used to select the pod to create replicas
+    matchLabels:
+      tier: frontend
+      app: nginx
+  # this is pod definition
+  template:
+    metadata:
+      # these labels belongs to pod
+      labels:
+        tier: frontend
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:stable-perl
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: nginx
+spec:
+  selector:
+    tier: frontend
+    app: nginx
+  ports:
+  - name: nginx-svc-port
+    protocol: TCP
+    port: 80 # service port
+    targetPort: 80 # container port
+```
+
+```
+kubectl apply -f 15-replicaset.yml
+```
+```
+kubectl describe service nginx
+```
+- Here, we can see there are three endpoints which are three replicasets. Here, service will loadbalance these three IP addresses
+
+- Suppose, if we change the version of image in replicaset and apply the changes. It won't get reflected.
+- Replicaset can't update the image version. Its only responsibilities is to maintain desired number of replicas
+- If we change image version in pod, let it be in 02-pod.yml, then its get updated with new version of image.
+- We can overcome this with deployment set
+- Delete the replicaset 
+```
+kubectl delete -f 15-replicaset.yml
+```
+
+**Deployment Set**
+- Internally deployment will create one replicaset. So replicaset is subset/part of deployment
+
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  labels: # these are replicaset labels
+    app: nginx
+    tier: frontend
+spec:
+  # modify replicas according to your case
+  replicas: 3
+  selector:
+    # these are used to select the pod to create replicas
+    matchLabels:
+      tier: frontend
+      app: nginx
+  # this is pod definition
+  template:
+    metadata:
+      # these labels belongs to pod
+      labels:
+        tier: frontend
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:stable-perl
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: nginx
+spec:
+  selector:
+    tier: frontend
+    app: nginx
+  ports:
+  - name: nginx-svc-port
+    protocol: TCP
+    port: 80 # service port
+    targetPort: 80 # container port
+```
+![alt text](images/k8-deployment.drawio.svg)
+
+- Suppose, if we update image version then deployment will create another replicaset. This replicaset will create one pod with the new image and deletes one old pod in replicaset-1. Then again it will create second pod and deletes old pod. Similiarly, it will create another pod and deletes old pod. 
+
+- This is called rolling-update with 0 down-time update. 
+- Suppose let us take 30 replicas, to see the result clearly.
+- Take another tab with same workstation and run the below command
+```
+watch kubectl get pods
+```
+- For every 2 seconds, it will get updated.
+- Now, change the image version and apply the changes. Then you can see that, new pod will be created and old pod gets deleted automatically. 
+
+- So, Deployment will create replicaset. When we update image, deployment makes sure there is no down time, it will create a new replicaset and creats new pod and deletes old pod.
+
+- So, pod is subset of replicaset and replicase is subset of deployment.
+
+
+
+
+
   
 
 
