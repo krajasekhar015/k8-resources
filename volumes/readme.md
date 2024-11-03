@@ -375,3 +375,29 @@ spec:
 ```
 - Here, we need to provide volumeID which we have created in EFS
 
+```
+kubectl apply -f 04-efs-static.yml
+```
+```
+kubectl get pv
+```
+
+- Now, we need to create PVC
+
+```
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: expense-efs
+spec:
+  volumeName: expense-efs
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 5Gi
+```
+- Here, volumeName defines the PV name
+
+
