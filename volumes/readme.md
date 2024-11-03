@@ -447,6 +447,50 @@ spec:
 - Here, we need to Open node port in the EKS worker nodes 
     - Go to securitygroup of workernode and allow portno.30007
 
+```
+kubectl apply -f 04-efs-static.yml
+```
+```
+kubectl get pods
+```
+```
+kubectl exec -it efs-static -- bash
+```
+```
+cd /usr/share/nginx/html/
+```
+```
+echo "<h1>This is from EFS Storage</h1>" > index.html
+```
+```
+kubectl get svc
+```
+- Copy the LoadBalancer URL and browse it. Here we can get the index.html
+- If we delete and recreate the pod, then data won't get lose
+
+**Dynamic Provisioning**
+- The only difference between static and dynamic is storage class
+- We will create stoarge class (everything it will be taken care)
+
+- In projects, most of the times in EFS we will go for dynamic provisioning
+- File system cannot be automated so, we should manually create it
+- For entire project we have only one EFS but for different applications(frontend, backend etc.,) the access points get created
+
+```
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: efs-expense
+provisioner: efs.csi.aws.com
+parameters:
+  provisioningMode: efs-ap
+  directoryPerms: "700"
+  fileSystemId: fs-020cccf0fbad56433
+  basePath: "/expense"
+```
+
+- Here, we need to provide name of the storage class, filesystem ID (volume) and basepath
+
 
 
 
