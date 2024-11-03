@@ -549,10 +549,21 @@ spec:
 ```
 - Volumename and volumemount name should be same
 
-- Delete static file 
+- To avoid the port issues first delete the efs-static file 
 ```
 kubectl delete -f 04-efs-static.yml
 ```
+
+```
+kubectl apply -f 06-efs-dynamic.yml
+```
+```
+kubectl get pv,pvc
+```
+- Now, we can see that access points are created in EFS volume
+    - Here, `/expense` is the base path and remaining is the path (access point) for application
+    - If number of applications increases, then number of access points also get increases
+    - EFS volume creation is not dynamic but access points are dynamic
 
 
 
