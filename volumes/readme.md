@@ -400,4 +400,54 @@ spec:
 ```
 - Here, volumeName defines the PV name
 
+```
+kubectl apply -f 04-efs-static.yml
+```
+```
+kubectl get pvc
+```
+
+- Now, we will create pod and service
+
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: efs-static
+  labels:
+    purpose: efs-static
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    volumeMounts: # docker run -v hostpath:contaierpath
+    - name: expense-efs
+      mountPath: /usr/share/nginx/html
+  volumes:
+  - name: expense-efs
+    persistentVolumeClaim:
+      claimName: expense-efs
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: nginx
+spec:
+  type: LoadBalancer
+  selector:
+    purpose: efs-static
+  ports:
+  - name: nginx-svc-port
+    protocol: TCP
+    port: 80 # service port
+    targetPort: 80 # container port
+    nodePort: 30007
+```
+
+- Here, we need to Open node port in the EKS worker nodes 
+    - Go to securitygroup of workernode and allow portno.30007
+
+
+
+
 
