@@ -491,6 +491,69 @@ parameters:
 
 - Here, we need to provide name of the storage class, filesystem ID (volume) and basepath
 
+```
+kubectl apply -f 05-efs-sc.yml
+```
+```
+kubectl get sc
+```
+
+- Now, we need to create dynamic 
+    - Create PVC, POD and serivce
+
+```
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: efs-dynamic
+spec:
+  storageClassName: "efs-expense"
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 3Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: efs-dynamic
+  labels:
+    purpose: efs-dynamic
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    volumeMounts: # docker run -v hostpath:contaierpath
+    - name: efs-dynamic
+      mountPath: /usr/share/nginx/html
+  volumes:
+  - name: efs-dynamic
+    persistentVolumeClaim:
+      claimName: efs-dynamic
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: nginx
+spec:
+  type: LoadBalancer
+  selector:
+    purpose: efs-dynamic
+  ports:
+  - name: nginx-svc-port
+    protocol: TCP
+    port: 80 # service port
+    targetPort: 80 # container port
+    nodePort: 30007
+```
+- Volumename and volumemount name should be same
+
+- Delete static file 
+```
+kubectl delete -f 04-efs-static.yml
+```
+
 
 
 
