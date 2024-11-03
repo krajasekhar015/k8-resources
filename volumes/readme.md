@@ -219,7 +219,7 @@ kubectl api-resources
 - When we create any resource, we have two types
     - It will be namespace level
     - It will be cluster level
-- Here, PV is the cluster level and admin has to create it
+- Here, PV is the cluster level and admin has to create it and PVC is namespace level
 
 **expense project devops engineer got a requirement to have a volume**
 1. You should send an email to storage team to create disk, then get the approval from manager and after getting approval they will create disk 
@@ -304,6 +304,74 @@ kubectl get pv
 
 ## 2. EFS 
 - EBS is like google drive. It is online which is somewhere in network and has less speed
+
+**EBS vs EFS**
+1. EBS is a block storage, EFS is like NFS (Network File System)
+2. EBS should be as near as possible.EFS can be anywhere in the network 
+3. EBS is fast campared to EFS 
+4. EBS we can store OS, databases. EFS is not good OS and databases
+5. EFS can increase stoarge limit automatically based on requirement  
+6. Generally files are stored in EFS (like customer related forms and signed documents)
+
 - EBS is of two types. They are:
     - Static Provisioning
     - Dynamic Provisioning
+
+**Static Provisioning**
+- what are the things we have to provide in static provisioning ?
+1. Create EFS volume 
+2. Install drivers and allow 2049 traffic from EKS worker nodes 
+3. Give permissions to EKS nodes 
+4. Create PV
+5. Create PVC 
+6. Claim through pod using PVC 
+7. Open node port in the EKS worker nodes 
+
+- First we will create EFS volume. Go to EFS in AWS console and create volume in `eksctl-expense-1-cluster/vpc` location
+- Then, install efs-csi drivers from the following location
+```
+https://github.com/kubernetes-sigs/aws-efs-csi-driver
+```
+- Use the following command to install drivers and we need to change the release version here. We will take public registry
+```
+kubectl kustomize \
+    "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/?ref=release-2.X" > public-ecr-driver.yaml
+```
+- This command output will be saved in the file named `public-ecr-driver.yaml` and run the command on this file
+```
+kubectl apply -f public-ecr-driver.yaml
+```
+
+![alt text](../images/k8-volumes-EFS.drawio.svg)
+
+- Ultimately requests comes from nodes to the volumes
+- If the request is from pod also that comes out of the node to the NFS 
+- For NFS, 2049 is the protocol 
+
+- Now, EFS SecurityGroup should allow traffic on 2049 from the SecurityGroup attached to EKS worker nodes
+    - Open EFS file system which was created earlier and open network and copy security group ID
+    - Then open EFS securitygroup and click on `edit inbound rules` and add `NFS` and provide `EKS securitygroup ID` and click on `save rules` 
+
+- Now, go to instance AMI roles and click on `attach policies` and search for EFS and select `AmazonEFSCSIDriverPolicy` and click on `Add permissions`
+
+- Now, we need to create PV (Persistant Volume)
+
+```
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: expense-efs
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: fs-020cccf0fbad56433
+```
+- Here, we need to provide volumeID which we have created in EFS
+
