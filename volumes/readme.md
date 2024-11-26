@@ -345,6 +345,11 @@ kubectl kustomize \
 kubectl apply -f public-ecr-driver.yaml
 ```
 
+> Whenever kubectl configuration gets distrubed, we need to apply the following command
+```
+aws eks --region region_code update-kubeconfig --name cluster_name
+```
+
 ![alt text](../images/k8-volumes-EFS.drawio.svg)
 
 - Ultimately requests comes from nodes to the volumes
