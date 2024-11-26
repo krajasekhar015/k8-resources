@@ -327,8 +327,10 @@ kubectl get pv
 6. Claim through pod using PVC 
 7. Open node port in the EKS worker nodes 
 
-- First we will create EFS volume. Go to EFS in AWS console and create volume in `eksctl-expense-1-cluster/vpc` location
-- Then, install efs-csi drivers from the following location
+- First we will create EFS volume. Go to EFS in AWS console and we need to create volume in our network (VPC) which is created for kubernetes i.e., `eksctl-expense-1-cluster/vpc` location
+    - File system network will be created in two availabity zones where vpc contains subnets. This we can see in `network` block
+    - EFS if VPC based resource
+- Then, install aws-efs-csi drivers from the following location
 ```
 https://github.com/kubernetes-sigs/aws-efs-csi-driver
 ```
@@ -337,6 +339,7 @@ https://github.com/kubernetes-sigs/aws-efs-csi-driver
 kubectl kustomize \
     "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/?ref=release-2.X" > public-ecr-driver.yaml
 ```
+- Before applying this command, we need to check that we should not be in any git repository. 
 - This command output will be saved in the file named `public-ecr-driver.yaml` and run the command on this file
 ```
 kubectl apply -f public-ecr-driver.yaml
