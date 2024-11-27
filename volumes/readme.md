@@ -357,12 +357,15 @@ aws eks --region region_code update-kubeconfig --name cluster_name
 - For NFS, 2049 is the protocol 
 
 - Now, EFS SecurityGroup should allow traffic on 2049 from the SecurityGroup attached to EKS worker nodes
-    - Open EFS file system which was created earlier and open network and copy security group ID
+    - Open EFS file system which was created earlier and click on `network` and copy security group ID
+    - Now, copy the security group ID of EKS cluster which is attached to EKS instances.
     - Then open EFS securitygroup and click on `edit inbound rules` and add `NFS` and provide `EKS securitygroup ID` and click on `save rules` 
 
 - Now, go to instance AMI roles and click on `attach policies` and search for EFS and select `AmazonEFSCSIDriverPolicy` and click on `Add permissions`
 
 - Now, we need to create PV (Persistant Volume)
+    - We will copy code from aws-efs-csi-driver. Below manifest (publicregistry), we can see examples. 
+    - Click on `examples` --> `static provisioning` --> `spec` --> `pv.yaml`
 
 ```
 apiVersion: v1
@@ -382,6 +385,8 @@ spec:
     volumeHandle: fs-020cccf0fbad56433
 ```
 - Here, we need to provide volumeID which we have created in EFS
+- StorageClass should be empty
+ Here, storage capacity is for dummy. Because it will increase the storage automatically. EFS storgae limit is 47.9TiB
 
 ```
 kubectl apply -f 04-efs-static.yml
@@ -391,6 +396,8 @@ kubectl get pv
 ```
 
 - Now, we need to create PVC
+  - We will copy code from aws-efs-csi-driver. Below manifest (publicregistry), we can see examples. 
+  - Click on `examples` --> `static provisioning` --> `spec` --> `claim.yaml`
 
 ```
 apiVersion: v1
@@ -406,7 +413,8 @@ spec:
     requests:
       storage: 5Gi
 ```
-- Here, volumeName defines the PV name
+- We need to refer PV from PVC. Here, volumeName defines the PV name
+- Since it is static provisioning, storageClass should be empty
 
 ```
 kubectl apply -f 04-efs-static.yml
@@ -515,7 +523,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: efs-dynamic
 spec:
-  storageClassName: "efs-expense"
+  storageClassName: "efs-expense"   #we need to give SC name we created before
   accessModes:
     - ReadWriteMany
   resources:
@@ -568,6 +576,7 @@ kubectl apply -f 06-efs-dynamic.yml
 ```
 kubectl get pv,pvc
 ```
+- Here, PV is automatically created by storage class
 - Now, we can see that access points are created in EFS volume
     - Here, `/expense` is the base path and remaining is the path (access point) for application
     - If number of applications increases, then number of access points also get increases
